@@ -44,7 +44,9 @@ module AirbrakeAPI
 
     def self.find_by_error_id(error_id, options={ 'page' => 1})
       setup
-
+      # if options['page'] > 1 
+      #   raise AirbrakeError.new("foobar")
+      # end
       hash = fetch(all_path(error_id), options)
       if hash.errors
         raise AirbrakeError.new(results.errors.error)
@@ -56,11 +58,13 @@ module AirbrakeAPI
     private
 
     def self.find_path(id, error_id)
-      "/errors/#{error_id}/notices/#{id}.xml"
+      #"/errors/#{error_id}/notices/#{id}.xml"
+      "/groups/#{error_id}/notices/#{id}.xml"
     end
 
     def self.all_path(error_id)
-      "/errors/#{error_id}/notices.xml"
+      #"/errors/#{error_id}/notices.xml"
+      "/groups/#{error_id}/notices.xml"
     end
   end
 end

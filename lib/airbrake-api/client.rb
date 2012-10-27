@@ -36,6 +36,28 @@ class HTTParty::Parser
   def xml
     body.gsub!(/<__utmz>.*?<\/__utmz>/m,'')
     body.gsub!(/<[0-9]+.*?>.*?<\/[0-9]+.*?>/m,'')
-    MultiXml.parse(body)
+    body.gsub!(/<\|>.*?<\/\|>/m, '')
+    body.gsub!("<br>", "<br/>")
+    body.gsub!("&larr;", "&lt;")
+    body.gsub!("&rarr;", "&gt;")
+    body.gsub!("&copy;", "(c)")
+    # # something wacky with Airbrake (quelle surprise -- but this only delays the fatal error)
+    body.gsub!('<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">', '<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>')
+    #body.gsub!("<title>Application Error</title></head>", "<title>Application Error</title>")
+    #body.gsub!("scr\"\+\"i", "scri")
+    #body.gsub!(/<script.*<\/script>/m, "")
+    #puts " >> #{body}"
+    # rescue MultiXml::ParseError
+    # return nil
+    #begin 
+      MultiXml.parse(body)
+    #rescue MultiXml::ParseError => e
+    #  puts " >> #{e.inspect}"
+    #  puts " >> #{body}"
+    #end
+
+    # body.gsub!(/<__utmz>.*?<\/__utmz>/m,'')
+    # body.gsub!(/<[0-9]+.*?>.*?<\/[0-9]+.*?>/m,'')
+    # MultiXml.parse(body)
   end
 end
