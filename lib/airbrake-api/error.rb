@@ -1,5 +1,9 @@
 module AirbrakeAPI
   class Error < AirbrakeAPI::Base
+    @path_prefix
+    class << self
+      attr_accessor :path_prefix
+    end
 
     def self.find(*args)
       setup
@@ -48,7 +52,7 @@ module AirbrakeAPI
     end
 
     def self.collection_path
-      '/errors.xml'
+      "#{@path_prefix}/errors.xml"
     end
 
     def self.error_path(error_id)
