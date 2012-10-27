@@ -18,14 +18,47 @@ module AirbrakeAPI
     end
 
     def self.fetch(path, options)
-      response = get(path, { :query => options })
-      if response.code == 403
-        raise AirbrakeError.new('SSL should be enabled - use AirbrakeAPI.secure = true in configuration')
+      # Airbrake has lots and lots of problems, don't be stymied by comms errors
+      # or comms erros that show up as parsing errors
+      #$stderr.puts "top of fetch"
+      _tries = 0
+      loopy = true
+      while(loopy)
+        begin
+          #$stderr.puts "path #{path}"
+          response = get(path, { :query => options })
+          #$stderr.puts "response #{response.inspect}"
+          if response.code == 403
+            raise AirbrakeError.new('SSL should be enabled - use AirbrakeAPI.secure = true in configuration')
+          end
+          hashie_mash = Hashie::Mash.new(response)
+          #$stderr.puts "hashie #{hashie_mash.inspect}"
+          loopy = false;
+          return hashie_mash
+        rescue Timeout::Error
+          $stderr.puts "> in fetch (timeout), tries: #{_tries}"
+          _tries += 1
+          if _tries > 4
+            $stderr.puts "> in fetch (timeout), too many tries."
+            raise AirbrakeError.new("Too many attempts to fetch.")
+          elsif _tries >= 1
+            $stderr.puts "> in fetch (timeout), re-trying: #{_tries}"
+            retry
+          end
+        rescue Exception => e
+          $stderr.puts "> in fetch (exc): #{e.inspect}"
+          $stderr.puts "> in fetch (exc), tries: #{_tries}"
+          _tries += 1
+          if _tries > 4
+            $stderr.puts "> in fetch (exc), too many tries."
+            raise AirbrakeError.new("Too many attempts to fetch.")
+          elsif _tries >= 1
+            $stderr.puts "> in fetch (exc), retrying: #{_tries}"
+            retry
+          end
+        end
       end
-
-      Hashie::Mash.new(response)
     end
-
   end
 end
 
